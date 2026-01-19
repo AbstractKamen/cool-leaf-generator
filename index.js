@@ -163,8 +163,8 @@ function drawAuxins() {
 function eatAuxins() {
     const auxinsToRemove = [];
     for (let i = 0; i < auxins.length; i++) {
+        const auxin = auxins[i];
         for (const vein of veins) {
-            const auxin = auxins[i];
             let distance = vein.position.dist(auxin);
             if (distance < auxinProximityRadius + auxinRadius) {
                 auxinsToRemove.push(i);
