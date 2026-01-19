@@ -30,7 +30,6 @@ function setup() {
     sprayAuxins();
     veins.push(new Vein(createVector(DEFAULT_CANVAS_WIDTH >> 1, DEFAULT_CANVAS_HEIGHT * 0.8), VECTOR_ZERO, 0));
     createCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    background('#181818');
     computeClosestVeins();
     frameRate(30);
     updateStats();
