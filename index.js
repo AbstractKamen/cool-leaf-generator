@@ -1,14 +1,14 @@
-const DEFAULT_CANVAS_HEIGHT = 800;
-const DEFAULT_CANVAS_WIDTH = 1024;
+const DEFAULT_CANVAS_HEIGHT = window.innerHeight;
+const DEFAULT_CANVAS_WIDTH = window.innerWidth;
 
 var RED;
 var WHITE;
 var PURPLE;
 var VECTOR_ZERO;
 
-var auxinRadius = 3;
-var auxinProximityRadius = 23;
-var auxinSprayCount = 250;
+var auxinRadius = 5;
+var auxinProximityRadius = 33;
+var auxinSprayCount = 100;
 const auxins = []; // Vector2
 const veins = []; // Vein
 
@@ -33,12 +33,46 @@ function setup() {
     background('#181818');
     computeClosestVeins();
     frameRate(30);
+    updateStats();
+
+    // ui lul
+    document.getElementById('grow')
+        .addEventListener('click', () => {
+            computeClosestVeins();
+            growMoreVeins();
+            updateStats();
+            return false;
+        });
+    document.getElementById('clear')
+        .addEventListener('click', () => {
+            auxins.length = 0;
+            veins.length = 1;
+            updateStats();
+            return false;
+        });
+    document.getElementById('eat')
+        .addEventListener('click', () => {
+            eatAuxins();
+            updateStats();
+            return false;
+        });
+    document.getElementById('spray')
+        .addEventListener('click', () => {
+            sprayAuxins();
+            updateStats();
+            return false;
+        });
 }
 
 function draw() {
     background('#181818FF');
     drawAuxins();
     drawVeins()
+}
+
+function updateStats() {
+    let element = document.getElementById("stats");
+    element.textContent = `Auxin count[${auxins.length}] Vein count[${veins.length}]`
 }
 
 function keyPressed() {
@@ -51,7 +85,11 @@ function keyPressed() {
     } else if (key === 'p') {
         computeClosestVeins();
         growMoreVeins();
+    } else if (key === 'c') {
+        auxins.length = 0;
+        veins.length = 1;
     }
+    updateStats();
 }
 
 
@@ -136,7 +174,11 @@ function eatAuxins() {
     }
     while (auxinsToRemove.length > 0) {
         let toRemove = auxinsToRemove.pop()
-        auxins[toRemove] = auxins.pop();
+        if (auxins.length === 1) {
+            auxins.pop();
+        } else {
+            auxins[toRemove] = auxins.pop();
+        }
     }
 }
 
