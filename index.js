@@ -50,7 +50,9 @@ function setup() {
     document.getElementById('clear')
         .addEventListener('click', () => {
             auxins.length = 0;
-            veins.length = 1;
+            veins.length = 0;
+            paintVein = false;
+            paintAuxin = false;
             updateStats();
             return false;
         });
@@ -116,6 +118,8 @@ function keyPressed() {
     } else if (key === 'c') {
         auxins.length = 0;
         veins.length = 0;
+        paintVein = false;
+        paintAuxin = false;
     }
     updateStats();
 }
