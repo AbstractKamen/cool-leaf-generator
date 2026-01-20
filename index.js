@@ -34,7 +34,6 @@ function setup() {
     sprayAuxins();
     veins.push(new Vein(createVector(DEFAULT_CANVAS_WIDTH >> 1, DEFAULT_CANVAS_HEIGHT * 0.8), VECTOR_ZERO, 1));
     createCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    background('#181818');
     computeClosestVeins();
     frameRate(30);
     updateStats();
@@ -204,8 +203,8 @@ function drawAuxins() {
 function eatAuxins() {
     const auxinsToRemove = [];
     for (let i = 0; i < auxins.length; i++) {
+        const auxin = auxins[i];
         for (const vein of veins) {
-            const auxin = auxins[i];
             let distance = vein.position.dist(auxin);
             if (distance < auxinProximityRadius + auxinRadius) {
                 auxinsToRemove.push(i);
