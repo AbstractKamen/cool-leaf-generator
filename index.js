@@ -9,10 +9,14 @@ var VECTOR_ZERO;
 var auxinRadius = 5;
 var auxinProximityRadius = 33;
 var auxinSprayCount = 100;
-const auxins = []; // Vector2
+var veinThicknessFactor = 0.2;
+var veinThicknessFactorOverAge_10 = 0.02;
+const auxins = []; // Vector
 const veins = []; // Vein
 
 var showProximity = false;
+var paintAuxin = false;
+var paintVein = false;
 
 class Vein {
     constructor(position, direction, age) {
@@ -28,7 +32,7 @@ function setup() {
     PURPLE = color('purple');
     VECTOR_ZERO = createVector(0.0, 0.0);
     sprayAuxins();
-    veins.push(new Vein(createVector(DEFAULT_CANVAS_WIDTH >> 1, DEFAULT_CANVAS_HEIGHT * 0.8), VECTOR_ZERO, 0));
+    veins.push(new Vein(createVector(DEFAULT_CANVAS_WIDTH >> 1, DEFAULT_CANVAS_HEIGHT * 0.8), VECTOR_ZERO, 1));
     createCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     background('#181818');
     computeClosestVeins();
@@ -62,6 +66,18 @@ function setup() {
             updateStats();
             return false;
         });
+    document.getElementById('toggle-paint-auxin')
+        .addEventListener('click', () => {
+            paintAuxin = !paintAuxin;
+            paintVein = false;
+            return false;
+        });
+    document.getElementById('toggle-paint-vein')
+        .addEventListener('click', () => {
+            paintVein = !paintVein;
+            paintAuxin = false;
+            return false;
+        });
 }
 
 function draw() {
@@ -73,6 +89,18 @@ function draw() {
 function updateStats() {
     let element = document.getElementById("stats");
     element.textContent = `Auxin count[${auxins.length}] Vein count[${veins.length}]`
+}
+
+function mouseClicked() {
+    if (0 <= mouseX && mouseX < DEFAULT_CANVAS_WIDTH && 0 <= mouseY && mouseY < DEFAULT_CANVAS_HEIGHT) {
+        if (paintAuxin) {
+            auxins.push(createVector(mouseX, mouseY));
+        } else if (paintVein) {
+            veins.push(new Vein(createVector(mouseX, mouseY), VECTOR_ZERO, 1));
+        }
+        updateStats();
+    }
+
 }
 
 function keyPressed() {
@@ -87,7 +115,7 @@ function keyPressed() {
         growMoreVeins();
     } else if (key === 'c') {
         auxins.length = 0;
-        veins.length = 1;
+        veins.length = 0;
     }
     updateStats();
 }
@@ -99,7 +127,7 @@ function growMoreVeins() {
         vein.age++;
         if (vein.direction.x === 0.0 && vein.direction.y === 0.0) continue;
         let limitedDir = p5.Vector.limit(vein.direction, auxinRadius * 2);
-        toAdd.push(new Vein(p5.Vector.add(vein.position, limitedDir), VECTOR_ZERO, 0));
+        toAdd.push(new Vein(p5.Vector.add(vein.position, limitedDir), VECTOR_ZERO, 1));
     }
     while (toAdd.length > 0) {
         veins.push(toAdd.pop())
@@ -122,20 +150,29 @@ function computeClosestVeins() {
         }
         let toSubtract = p5.Vector.sub(auxin, closest.position);
         closest.direction = p5.Vector.add(closest.direction, toSubtract);
+        if (closest.direction.x !== 0.0 && closest.direction.y !== 0.0) {
+            closest.growDirection = closest.direction;
+        }
     }
 }
 
 function drawVeins() {
     push();
-    strokeWeight(2);
     noFill();
     stroke(WHITE);
     for (const vein of veins) {
-        circle(vein.position.x, vein.position.y, auxinRadius << 1);
-        push();
-        let dir = p5.Vector.add(vein.position, vein.direction.limit(auxinRadius << 1));
-        line(vein.position.x, vein.position.y, dir.x, dir.y);
-        pop();
+        // circle(vein.position.x, vein.position.y, auxinRadius << 1);
+        if (vein.growDirection !== undefined) {
+            push();
+            let dir = p5.Vector.add(vein.position, vein.growDirection.limit(auxinRadius << 1));
+            if (vein.age > 10) {
+                strokeWeight(10 * veinThicknessFactor + (veinThicknessFactorOverAge_10 * vein.age));
+            } else {
+                strokeWeight(veinThicknessFactor * vein.age);
+            }
+            line(vein.position.x, vein.position.y, dir.x, dir.y);
+            pop();
+        }
     }
     pop();
 }
