@@ -9,8 +9,11 @@ var VECTOR_ZERO;
 var auxinRadius = 5;
 var auxinProximityRadius = 33;
 var auxinSprayCount = 100;
-var veinThicknessFactor = 0.2;
-var veinThicknessFactorOverAge_10 = 0.02;
+
+const thicknessThreshold = 20;
+var veinThicknessFactor = 0.05;
+var veinThicknessFactorOverThreshold = 0.01;
+
 const auxins = []; // Vector
 const veins = []; // Vein
 
@@ -23,6 +26,7 @@ class Vein {
         this.position = position;
         this.direction = direction;
         this.age = age;
+        this.childrenDirections = [];
     }
 }
 
@@ -123,14 +127,15 @@ function keyPressed() {
     updateStats();
 }
 
-
 function growMoreVeins() {
     const toAdd = [];
     for (const vein of veins) {
         vein.age++;
         if (vein.direction.x === 0.0 && vein.direction.y === 0.0) continue;
         let limitedDir = p5.Vector.limit(vein.direction, auxinRadius * 2);
-        toAdd.push(new Vein(p5.Vector.add(vein.position, limitedDir), VECTOR_ZERO, 1));
+        let newVein = new Vein(p5.Vector.add(vein.position, limitedDir), VECTOR_ZERO, 1);
+        toAdd.push(newVein);
+        vein.childrenDirections.push(newVein.position);
     }
     while (toAdd.length > 0) {
         veins.push(toAdd.pop())
@@ -153,9 +158,6 @@ function computeClosestVeins() {
         }
         let toSubtract = p5.Vector.sub(auxin, closest.position);
         closest.direction = p5.Vector.add(closest.direction, toSubtract);
-        if (closest.direction.x !== 0.0 && closest.direction.y !== 0.0) {
-            closest.growDirection = closest.direction;
-        }
     }
 }
 
@@ -164,17 +166,15 @@ function drawVeins() {
     noFill();
     stroke(WHITE);
     for (const vein of veins) {
-        // circle(vein.position.x, vein.position.y, auxinRadius << 1);
-        if (vein.growDirection !== undefined) {
-            push();
-            let dir = p5.Vector.add(vein.position, vein.growDirection.limit(auxinRadius << 1));
-            if (vein.age > 10) {
-                strokeWeight(10 * veinThicknessFactor + (veinThicknessFactorOverAge_10 * vein.age));
-            } else {
-                strokeWeight(veinThicknessFactor * vein.age);
-            }
-            line(vein.position.x, vein.position.y, dir.x, dir.y);
-            pop();
+        let veinThickness;
+        if (vein.age > thicknessThreshold) {
+            veinThickness = thicknessThreshold * veinThicknessFactor + (veinThicknessFactorOverThreshold * vein.age);
+        } else {
+            veinThickness = veinThicknessFactor * vein.age;
+        }
+        strokeWeight(veinThickness);
+        for (const childDir of vein.childrenDirections) {
+            line(vein.position.x, vein.position.y, childDir.x, childDir.y);
         }
     }
     pop();
